@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Application>
+  <SchemaModules>
+    <SchemaModule Name="CloneObjectModule" Version="21.2.6.0" IsNewNode="True" />
+    <SchemaModule Name="SchedulerModuleBase" Version="21.2.6.0" IsNewNode="True" />
+    <SchemaModule Name="SchedulerWindowsFormsModule" Version="21.2.6.0" IsNewNode="True" />
+    <SchemaModule Name="SystemModule" Version="21.2.6.0" IsNewNode="True" />
+    <SchemaModule Name="SystemWindowsFormsModule" Version="21.2.6.0" IsNewNode="True" />
+  </SchemaModules>
+  <Views>
+    <ListView Id="Patients_ListView" SchedulerViewType="WorkWeek" EditorTypeName="" />
+  </Views>
+</Application>
