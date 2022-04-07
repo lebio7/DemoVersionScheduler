@@ -5,6 +5,7 @@ using DevExpress.Persistent.BaseImpl;
 using DevExpress.Xpo;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,7 +30,14 @@ namespace DemoVersionScheduler.Module.BusinessObjects
             set => SetPropertyValue(nameof(Caption), ref caption, value);
         }
 
-        public object Id => Oid.ToString();
+        [NonPersistent, Browsable(false)]
+        public object Id => Oid;
+
+        [Association("Event-Resource")]
+        public XPCollection<Patients> Events
+        {
+            get { return GetCollection<Patients>(nameof(Events)); }
+        }
 
         public int OleColor => 1;
     }

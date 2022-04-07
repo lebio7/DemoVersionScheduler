@@ -1,7 +1,67 @@
-﻿<Application Logo="ExpressAppLogo">
-	<Options UIType="TabbedMDI" FormStyle="Ribbon" />
-	<NavigationItems NavigationStyle="Accordion" ShowImages="False" DefaultChildItemsDisplayStyle="List"/>
-	<Options ShowTabImage="False">
-		<LayoutManagerOptions EnableLayoutGroupImages="False" />
-	</Options>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Application Logo="ExpressAppLogo">
+  <NavigationItems NavigationStyle="Accordion" ShowImages="False" DefaultChildItemsDisplayStyle="List">
+    <Items>
+      <Item Id="Patients">
+        <Items>
+          <Item Id="@c9353e99-aa28-4ac2-9923-1c84345719cd" ViewId="Scheduler" IsNewNode="True" />
+        </Items>
+      </Item>
+    </Items>
+  </NavigationItems>
+  <Options UIType="TabbedMDI" FormStyle="Ribbon" ShowTabImage="False">
+    <LayoutManagerOptions EnableLayoutGroupImages="False" />
+  </Options>
+  <SchemaModules>
+    <SchemaModule Name="CloneObjectModule" Version="21.2.6.0" IsNewNode="True" />
+    <SchemaModule Name="SchedulerModuleBase" Version="21.2.6.0" IsNewNode="True" />
+    <SchemaModule Name="SchedulerWindowsFormsModule" Version="21.2.6.0" IsNewNode="True" />
+    <SchemaModule Name="SystemModule" Version="21.2.6.0" IsNewNode="True" />
+    <SchemaModule Name="SystemWindowsFormsModule" Version="21.2.6.0" IsNewNode="True" />
+  </SchemaModules>
+  <Views>
+    <ListView Id="Patients_ListView" EditorTypeName="DevExpress.ExpressApp.Win.Editors.GridListEditor" />
+    <ListView Id="Patients_ListView_Calendar" ClassName="DemoVersionScheduler.Module.BusinessObjects.Patients" SchedulerViewType="WorkWeek" EditorTypeName="DevExpress.ExpressApp.Scheduler.Win.SchedulerListEditor" Caption="Calendar" IsNewNode="True">
+      <Columns IsNewNode="True">
+        <ColumnInfo Id="Description" PropertyName="Description" Index="-1" IsNewNode="True" />
+        <ColumnInfo Id="Oid" PropertyName="Oid" Index="-1" IsNewNode="True" />
+        <ColumnInfo Id="ResourceId" PropertyName="ResourceId" Index="-1" IsNewNode="True" />
+        <ColumnInfo Id="Subject" PropertyName="Subject" Index="-1" IsNewNode="True" />
+        <ColumnInfo Id="Name" PropertyName="Name" SortIndex="0" SortOrder="Ascending" Index="0" IsNewNode="True" />
+        <ColumnInfo Id="Age" PropertyName="Age" Index="1" IsNewNode="True" />
+        <ColumnInfo Id="StartOn" PropertyName="StartOn" Index="2" IsNewNode="True" />
+        <ColumnInfo Id="EndOn" PropertyName="EndOn" Index="3" IsNewNode="True" />
+        <ColumnInfo Id="AllDay" PropertyName="AllDay" Index="4" IsNewNode="True" />
+        <ColumnInfo Id="Location" PropertyName="Location" Index="5" IsNewNode="True" />
+        <ColumnInfo Id="Label" PropertyName="Label" Index="6" IsNewNode="True" />
+      </Columns>
+    </ListView>
+    <ListView Id="PatientsWithoutRoom" ClassName="DemoVersionScheduler.Module.BusinessObjects.Patients" SchedulerViewType="WorkWeek" EditorTypeName="DevExpress.ExpressApp.Win.Editors.GridListEditor" Caption="PatientsWithoutRoom" Filter="[Resources][].Count() = 0" IsNewNode="True">
+      <Columns IsNewNode="True">
+        <ColumnInfo Id="Description" PropertyName="Description" Index="-1" IsNewNode="True" />
+        <ColumnInfo Id="Oid" PropertyName="Oid" Index="-1" IsNewNode="True" />
+        <ColumnInfo Id="ResourceId" PropertyName="ResourceId" Index="-1" IsNewNode="True" />
+        <ColumnInfo Id="Subject" PropertyName="Subject" Index="-1" IsNewNode="True" />
+        <ColumnInfo Id="Name" PropertyName="Name" SortIndex="0" SortOrder="Ascending" Index="0" IsNewNode="True" />
+        <ColumnInfo Id="Age" PropertyName="Age" Index="1" IsNewNode="True" />
+        <ColumnInfo Id="StartOn" PropertyName="StartOn" Index="2" IsNewNode="True" />
+        <ColumnInfo Id="EndOn" PropertyName="EndOn" Index="3" IsNewNode="True" />
+        <ColumnInfo Id="AllDay" PropertyName="AllDay" Index="4" IsNewNode="True" />
+        <ColumnInfo Id="Location" PropertyName="Location" Index="5" IsNewNode="True" />
+        <ColumnInfo Id="Label" PropertyName="Label" Index="6" IsNewNode="True" />
+      </Columns>
+    </ListView>
+    <DashboardView Id="Scheduler" Caption="Scheduler" IsNewNode="True">
+      <Items IsNewNode="True">
+        <DashboardViewItem Id="Calendar" ViewId="Patients_ListView_Calendar" Caption="Calendar" IsNewNode="True" />
+        <DashboardViewItem Id="List" ViewId="PatientsWithoutRoom" Caption="patients List" IsNewNode="True" />
+      </Items>
+      <Layout IsNewNode="True">
+        <LayoutGroup Id="Main" ShowCaption="False" TextAlignMode="AlignWithChildren" Index="0" RelativeSize="100" Caption="Main" IsNewNode="True">
+          <LayoutItem Id="Calendar" ViewItem="Calendar" Index="0" RelativeSize="50" IsNewNode="True" />
+          <LayoutItem Id="List" ViewItem="List" Index="1" RelativeSize="50" IsNewNode="True" />
+        </LayoutGroup>
+      </Layout>
+    </DashboardView>
+  </Views>
 </Application>

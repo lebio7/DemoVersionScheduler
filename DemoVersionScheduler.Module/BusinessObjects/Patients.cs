@@ -12,6 +12,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace DemoVersionScheduler.Module.BusinessObjects
 {
@@ -24,11 +25,13 @@ namespace DemoVersionScheduler.Module.BusinessObjects
         { }
 
 
+        [Persistent("ResourceIds"), Size(SizeAttribute.Unlimited), ObjectValidatorIgnoreIssue(typeof(ObjectValidatorLargeNonDelayedMember))]
+        private String resourceIds;
+
         int age;
         string name;
         DateTime endOn;
         DateTime startOn;
-        string resourceId;
         int type;
         int status;
         int label;
@@ -36,6 +39,12 @@ namespace DemoVersionScheduler.Module.BusinessObjects
         bool allDay;
         string description;
         string subject;
+
+        [Association("Event-Resource")]
+        public XPCollection<Room> Resources
+        {
+            get { return GetCollection<Room>(nameof(Resources)); }
+        }
 
         [Size(SizeAttribute.DefaultStringMappingFieldSize)]
         public string Name
@@ -165,17 +174,75 @@ namespace DemoVersionScheduler.Module.BusinessObjects
         {
             get
             {
-                return resourceId;
+                if (string.IsNullOrEmpty(resourceIds))
+                {
+                    UpdateResourceIds();
+                }
+                return resourceIds;
             }
             set
-            { 
-                SetPropertyValue(nameof(ResourceId), ref resourceId, value);
+            {
+                if (resourceIds != value)
+                {
+                    resourceIds = value;
+                    UpdateResources();
+                }
             }
         }
 
         [ModelDefault("AllowEdit", "False")]
         [Browsable(false)]
-        public object AppointmentId => Oid.ToString();
+        public object AppointmentId => Oid;
+
+        public void UpdateResourceIds()
+        {
+            if (Resources?.Count > 0)
+            {
+                resourceIds = "<ResourceIds>\r\n";
+                foreach (Room resource in Resources)
+                {
+                    resourceIds += string.Format("<ResourceId Type=\"{0}\" Value=\"{1}\" />\r\n", resource.Id.GetType().FullName, resource.Id);
+                }
+                resourceIds += "</ResourceIds>";
+            }
+        }
+
+        public void UpdateResources(bool refreshAllCollection = false)
+        {
+            Resources.SuspendChangedEvents();
+            try
+            {
+                if (refreshAllCollection)
+                {
+                    UpdateResourceIds();
+                }
+
+                while (Resources.Count > 0)
+                {
+                    Resources.Remove(Resources[0]);
+                }
+
+                if (!String.IsNullOrEmpty(resourceIds))
+                {
+                    XmlDocument xmlDocument = DevExpress.Utils.SafeXml.CreateDocument(resourceIds);
+                    foreach (XmlNode xmlNode in xmlDocument.DocumentElement.ChildNodes)
+                    {
+                        AppointmentResourceIdXmlLoader loader = new AppointmentResourceIdXmlLoader(xmlNode);
+                        Object keyMemberValue = loader.ObjectFromXml();
+                        Room resource = Session.GetObjectByKey<Room>(new Guid(keyMemberValue.ToString()));
+                        if (resource != null)
+                        {
+                            Resources.Add(resource);
+                        }
+                    }
+                }
+
+            }
+            finally
+            {
+                Resources.ResumeChangedEvents();
+            }
+        }
 
     }
 }
