@@ -8,7 +8,6 @@ using DevExpress.XtraGrid.Views.Grid.ViewInfo;
 using DevExpress.XtraScheduler;
 using System;
 using System.Drawing;
-using System.Linq;
 
 namespace DemoVersionScheduler.Module.Win.Controllers
 {
@@ -19,9 +18,12 @@ namespace DemoVersionScheduler.Module.Win.Controllers
         public const string ListId = "List";
         public const string ListViewId = "PatientsWithoutRoom";
         public const string CalendarViewId = "Patients_ListView_Calendar";
+        private SchedulerListEditor schedulerListEditor;
 
         private GridHitInfo downHitInfo;
         private SchedulerStorageBase schedulerStorage;
+        private ListView schedulerListView;
+        private ListView dragListView;
 
         public SchedulerDashboardController()
         {
@@ -54,12 +56,14 @@ namespace DemoVersionScheduler.Module.Win.Controllers
 
             if (innerView.Id == ListViewId)
             {
+                dragListView = innerView;
                 GridListEditor gridListEditor = (GridListEditor)innerView.Editor;
                 gridListEditor.GridView.MouseMove += GridView_MouseMove;
                 gridListEditor.GridView.MouseDown += GridView_MouseDown;
             }
             else if (innerView.Id == CalendarViewId)
             {
+                schedulerListView = innerView;
                 var schedulerListEditor = (SchedulerListEditor)innerView.Editor;
                 schedulerStorage = (SchedulerStorageBase)schedulerListEditor.StorageBase;
                 schedulerListEditor.SchedulerControl.AppointmentDrop += SchedulerControl_AppointmentDrop;
@@ -71,42 +75,26 @@ namespace DemoVersionScheduler.Module.Win.Controllers
 
         void SchedulerControl_AppointmentDrop(object sender, DevExpress.XtraScheduler.AppointmentDragEventArgs e)
         {
-            string createEventMsg = "Creating an event at {0} on {1}.";
-            string moveEventMsg = "Moving the event from {0} on {1} to {2} on {3}.";
-
-            DateTime srcStart = e.SourceAppointment.Start;
-            DateTime newStart = e.EditedAppointment.Start;
-
-            string msg = (srcStart == DateTime.MinValue) ? String.Format(createEventMsg, newStart.ToShortTimeString(), newStart.ToShortDateString()) :
-                String.Format(moveEventMsg, srcStart.ToShortTimeString(), srcStart.ToShortDateString(), newStart.ToShortTimeString(), newStart.ToShortDateString());
-
-            if (((DevExpress.ExpressApp.Win.WinApplication)Application).GetUserChoice(msg + "\r\nProceed?", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.No)
+            Patients patient = e.SourceAppointment.GetSourceObject(schedulerStorage) as Patients;
+            if (patient == null)
             {
-                e.Allow = false;
-            }
-
-            object keyPatient = e.SourceAppointment.Id == null ? e?.SourceAppointment?.LabelKey : e.SourceAppointment.Id;
-            if (keyPatient != null)
-            {
-                var patient = ObjectSpace.GetObjectByKey<Patients>(keyPatient);
-                if (patient != null)
+                object keyPatient = e.SourceAppointment.Id == null ? e?.SourceAppointment?.LabelKey : e.SourceAppointment.Id;
+                if (keyPatient != null)
                 {
-                    patient.StartOn = e.EditedAppointment.Start;
-                    patient.EndOn = e.EditedAppointment.End;
-
-                    if (e.EditedAppointment.ResourceId != null)
-                    {
-                        var room = ObjectSpace.GetObjectByKey<Room>(e.EditedAppointment.ResourceId);
-                        if (room != null && !patient.Resources.Contains(room))
-                        {
-                            patient.Resources.Add(room);
-                            patient.UpdateResources(true);
-                        }
-                    }
+                    patient = schedulerListView.ObjectSpace.GetObjectByKey<Patients>(keyPatient);
                 }
             }
-
-            ObjectSpace.CommitChanges();
+            if (patient != null)
+            {
+                var schedulerListEditor = (SchedulerListEditor)schedulerListView.Editor;
+                schedulerListEditor.StorageBase.BeginUpdate();
+                schedulerListEditor.EventAssigner.AssignAppointment(patient, e.EditedAppointment, schedulerListView.ObjectSpace);
+                schedulerListEditor.StorageBase.EndUpdate();
+                e.Allow = false;
+                schedulerListView.CollectionSource.Add(patient);
+                schedulerListView.ObjectSpace.CommitChanges();
+                dragListView.ObjectSpace.Refresh();
+            }
         }
 
         private void GridView_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
