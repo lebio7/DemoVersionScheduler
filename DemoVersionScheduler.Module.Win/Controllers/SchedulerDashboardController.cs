@@ -18,12 +18,12 @@ namespace DemoVersionScheduler.Module.Win.Controllers
         public const string ListId = "List";
         public const string ListViewId = "PatientsWithoutRoom";
         public const string CalendarViewId = "Patients_ListView_Calendar";
-        private SchedulerListEditor schedulerListEditor;
 
         private GridHitInfo downHitInfo;
         private SchedulerStorageBase schedulerStorage;
         private ListView schedulerListView;
         private ListView dragListView;
+        private SchedulerListEditor schedulerListEditor;
 
         public SchedulerDashboardController()
         {
@@ -64,12 +64,33 @@ namespace DemoVersionScheduler.Module.Win.Controllers
             else if (innerView.Id == CalendarViewId)
             {
                 schedulerListView = innerView;
-                var schedulerListEditor = (SchedulerListEditor)innerView.Editor;
+                schedulerListEditor = (SchedulerListEditor)innerView.Editor;
                 schedulerStorage = (SchedulerStorageBase)schedulerListEditor.StorageBase;
                 schedulerListEditor.SchedulerControl.AppointmentDrop += SchedulerControl_AppointmentDrop;
                 schedulerListEditor.SchedulerControl.OptionsCustomization.AllowAppointmentDragBetweenResources = UsedAppointmentType.All;
                 schedulerListEditor.SchedulerControl.OptionsCustomization.AllowAppointmentDrag = UsedAppointmentType.All;
                 schedulerListEditor.SchedulerControl.GroupType = SchedulerGroupType.Resource;
+                schedulerListEditor.SchedulerControl.DataStorage.FilterResource += DataStorage_FilterResource;
+            }
+        }
+
+        private void DataStorage_FilterResource(object sender, PersistentObjectCancelEventArgs e)
+        {
+            if (schedulerListEditor.SchedulerControl.ActiveViewType != SchedulerViewType.Day)
+            {
+                return;
+            }
+
+            Resource r = e.Object as Resource;
+            TimeInterval interval = schedulerListEditor.SchedulerControl.DayView.GetVisibleIntervals().Interval;
+
+            if ( interval.Start.Date == DateTime.Today)
+            {
+                e.Cancel = true;
+            }
+            else
+            {
+                r.SetColor(Color.Gray);
             }
         }
 
